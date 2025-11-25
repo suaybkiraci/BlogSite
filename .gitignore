@@ -1,0 +1,23 @@
+node_modules/
+__pycache__/
+.env
+.venv/
+venv/
+*.log
+.DS_Store
+
+# Frontend
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+
+# Backend
+backend/static/uploads/
+backend/__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+.cursor/
