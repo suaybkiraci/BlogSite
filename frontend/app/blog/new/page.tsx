@@ -9,6 +9,7 @@ import TiptapEditor from '@/components/TiptapEditor';
 import toast from 'react-hot-toast';
 import { Save, Upload, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { Smartphone } from 'lucide-react';
 
 interface BlogTag {
   id: number;
@@ -126,6 +127,24 @@ export default function NewBlogPage() {
 
   return (
     <ProtectedRoute>
+      {/* MOBİL UYARI EKRANI */}
+      <div className="flex flex-col items-center justify-center min-h-screen text-center md:hidden px-4 bg-background fixed inset-0 z-50">
+        <div className="bg-muted/30 p-6 rounded-full mb-6">
+          <Smartphone size={48} className="text-muted-foreground" />
+        </div>
+        <h2 className="text-2xl font-bold mb-3">Masaüstü Görünümü Gerekli</h2>
+        <p className="text-muted-foreground mb-8 max-w-xs mx-auto">
+          Gelişmiş blog editörü mobil cihazlarda desteklenmemektedir. En iyi deneyim için lütfen bilgisayardan giriş yapın.
+        </p>
+        <Link 
+          href="/blog" 
+          className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background shadow-sm transition-all hover:bg-foreground/90"
+        >
+          Bloglara Dön
+        </Link>
+      </div>
+
+      <div className="hidden md:block">
       <div className="fixed inset-0 z-20 bg-background transition-colors overflow-y-auto">
         <header className="fixed left-0 right-0 top-0 z-40 border-b border-border/60 bg-card/90 shadow-[0_20px_60px_rgba(15,23,42,0.15)] backdrop-blur-2xl transition-colors dark:shadow-[0_28px_70px_rgba(4,12,30,0.45)]">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -257,6 +276,7 @@ export default function NewBlogPage() {
           </motion.div>
         )}
         </AnimatePresence>
+      </div>
       </div>
     </ProtectedRoute>
   );

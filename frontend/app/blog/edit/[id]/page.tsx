@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import TiptapEditor from '@/components/TiptapEditor';
 import toast from 'react-hot-toast';
-import { Upload, X, ArrowLeft, Settings } from 'lucide-react';
+import { Upload, X, ArrowLeft, Settings, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 
 interface BlogTag {
@@ -161,6 +161,24 @@ export default function EditBlogPage() {
 
   return (
     <ProtectedRoute>
+      {/* MOBİL UYARI EKRANI */}
+      <div className="flex flex-col items-center justify-center min-h-screen text-center md:hidden px-4 bg-background fixed inset-0 z-50">
+        <div className="bg-muted/30 p-6 rounded-full mb-6">
+          <Smartphone size={48} className="text-muted-foreground" />
+        </div>
+        <h2 className="text-2xl font-bold mb-3">Düzenleme Modu Desteklenmiyor</h2>
+        <p className="text-muted-foreground mb-8 max-w-xs mx-auto">
+          Blog düzenleme işlemi ekran genişliği gerektirdiği için mobilde yapılamamaktadır. Lütfen bilgisayardan deneyin.
+        </p>
+        <Link 
+          href={`/blog/${params.id}`} 
+          className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background shadow-sm transition-all hover:bg-foreground/90"
+        >
+          Bloğa Geri Dön
+        </Link>
+      </div>
+
+      <div className="hidden md:block">
       <div className="fixed inset-0 z-20 bg-background transition-colors overflow-y-auto">
         <div className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-card/90 shadow-[0_25px_70px_rgba(15,23,42,0.18)] backdrop-blur-2xl transition-colors dark:shadow-[0_32px_80px_rgba(4,12,30,0.48)]">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
@@ -310,6 +328,7 @@ export default function EditBlogPage() {
             </>
           )}
         </AnimatePresence>
+      </div>
       </div>
     </ProtectedRoute>
   );
