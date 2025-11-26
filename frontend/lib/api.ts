@@ -11,6 +11,12 @@ export const api = axios.create({
   },
 });
 
+const generateFileName = (file: File) => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+  return fileName;
+};
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');

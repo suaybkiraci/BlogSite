@@ -7,6 +7,8 @@ import { Tag, Plus, Edit, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { User } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
 interface BlogPost {
   id: number;
   title: string;

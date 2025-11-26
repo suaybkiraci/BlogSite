@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { Save, Upload, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Smartphone } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface BlogTag {
   id: number;
@@ -33,17 +34,38 @@ export default function NewBlogPage() {
     // blogAPI.listTags().then(setTags).catch(() => {});
   }, []);
 
+  const generateFileName = (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    return fileName;
+  };
+
   const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !token) return;
+    if (!file) return;
 
     setUploading(true);
     try {
-      const result = await blogAPI.uploadImage(file, token);
-      const url = `http://localhost:8000${result.url}`;
-      setCoverImage(url);
+      const fileName = generateFileName(file);
+
+      const { error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+          console.error('Supabase Upload Error Detail:', uploadError);
+          throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(fileName);
+
+      console.log('Supabase Public URL:', publicUrl);
+      setCoverImage(publicUrl);
       toast.success('Cover image uploaded!');
-    } catch {
+    } catch (error) {
+      console.error('Upload error:', error);
       toast.error('Upload failed');
     } finally {
       setUploading(false);
@@ -51,12 +73,26 @@ export default function NewBlogPage() {
   };
 
   const handleEditorImageUpload = async (file: File): Promise<string> => {
-    if (!token) throw new Error('Not authenticated');
-    
     try {
-      const result = await blogAPI.uploadImage(file, token);
-      return `http://localhost:8000${result.url}`;
-    } catch {
+      const fileName = generateFileName(file);
+
+      const { error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+          console.error('Supabase Editor Upload Error Detail:', uploadError);
+          throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(fileName);
+
+      console.log('Supabase Editor Public URL:', publicUrl);
+      return publicUrl;
+    } catch (error) {
+      console.error('Editor upload error:', error);
       throw new Error('Upload failed');
     }
   };
