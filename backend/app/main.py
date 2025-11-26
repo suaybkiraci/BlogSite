@@ -26,6 +26,7 @@ app.add_middleware(
         "https://api.suayb.xyz"
         "https://www.demo.suayb.xyz",
         "http://demo.suayb.xyz",
+        "https://suayb.xyz",
 
     ],
     allow_credentials=True,
