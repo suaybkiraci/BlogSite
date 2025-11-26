@@ -76,7 +76,7 @@ export default function AdminPage() {
     setLoadingBlogs(true);
     try {
       // Admin için token ile tüm blogları çek (approved olmayan da dahil)
-      const res = await fetch('http://localhost:8000/blog/', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/blog/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to fetch blogs');
