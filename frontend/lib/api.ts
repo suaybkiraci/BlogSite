@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AdminUser, User } from '@/types';
-const API_URL = 'https://suayb.xyz';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const APPROVE_SEGMENT = 'approve';
 const UNAPPROVE_SEGMENT = 'unapprove';
 
