@@ -22,7 +22,7 @@ const KaggleIcon = () => (
 const socialLinks = [
   { href: "https://github.com/suaybkiraci", label: "GitHub", icon: Github },
   { href: "https://linkedin.com/in/muhammed-suayib-kiraci-428648274", label: "LinkedIn", icon: Linkedin },
-  { href: "mailto:babapro126@gmail.com", label: "Email", icon: Mail },
+  { href: "mailto:msuaybkiraci@gmail.com", label: "Email", icon: Mail },
   { href: "https://instagram.com/suaybkiraci", label: "Instagram", icon: Instagram },
   { href: "https://kaggle.com/suayb1", label: "Kaggle", icon: KaggleIcon },
 ];
