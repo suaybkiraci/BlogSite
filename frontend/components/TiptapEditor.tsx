@@ -10,6 +10,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import {Plus,Link as LinkIcon,Image as ImageIcon,Quote,MessageCircle,X} from "lucide-react";
 import { common, createLowlight } from "lowlight";
+import { NodeSelection } from "prosemirror-state";
 
 interface Props {
   content?: string;
@@ -54,6 +55,21 @@ const CustomImage = ImageResize.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
+      caption: {
+        default: "",
+        parseHTML: (element) =>
+          element.getAttribute("caption") ||
+          element.getAttribute("data-caption") ||
+          "",
+        renderHTML: (attributes) =>
+          attributes.caption
+            ? {
+                caption: attributes.caption,
+                alt: attributes.caption,
+                title: attributes.caption,
+              }
+            : {},
+      },
       layout: {
         default: "inline", 
         parseHTML: (element) => element.getAttribute("data-layout") || "inline",
@@ -87,6 +103,77 @@ export default function MediumTiptapEditor({
   const [unsplashLoading, setUnsplashLoading] = useState(false);
   const [unsplashError, setUnsplashError] = useState<string | null>(null);
 
+  const [selectedImageCaption, setSelectedImageCaption] = useState("");
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+  const [captionUi, setCaptionUi] = useState<
+    | { top: number; left: number; width: number }
+    | null
+  >(null);
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
+
+  const trySelectImageFromEvent = useCallback(
+    (view: any, event: MouseEvent) => {
+      // First try resolving via NodeView wrapper DOM. This is robust for
+      // resize handles / toolbars that are inside the node view.
+      const target = event.target as HTMLElement | null;
+      const wrapper =
+        target?.closest?.("[data-node-view-wrapper]") as HTMLElement | null;
+      if (wrapper) {
+        const pos = view.posAtDOM(wrapper, 0);
+        const nodeAt = view.state.doc.nodeAt(pos);
+        if (nodeAt?.type?.name === "imageResize") {
+          const tr = view.state.tr.setSelection(
+            NodeSelection.create(view.state.doc, pos)
+          );
+          view.dispatch(tr);
+          return true;
+        }
+
+        // Sometimes posAtDOM points *inside*; try resolving around it.
+        const $pos = view.state.doc.resolve(pos);
+        let imagePos: number | null = null;
+        if ($pos.nodeAfter?.type?.name === "imageResize") {
+          imagePos = $pos.pos;
+        } else if ($pos.nodeBefore?.type?.name === "imageResize") {
+          imagePos = $pos.pos - $pos.nodeBefore.nodeSize;
+        }
+        if (imagePos != null) {
+          const tr = view.state.tr.setSelection(
+            NodeSelection.create(view.state.doc, imagePos)
+          );
+          view.dispatch(tr);
+          return true;
+        }
+      }
+
+      // Fallback: resolve by click coordinates.
+      const coords = view.posAtCoords({
+        left: event.clientX,
+        top: event.clientY,
+      });
+      if (!coords) return false;
+
+      const $pos = view.state.doc.resolve(coords.pos);
+      let imagePos: number | null = null;
+      if ($pos.nodeAfter?.type?.name === "imageResize") {
+        imagePos = $pos.pos;
+      } else if ($pos.nodeBefore?.type?.name === "imageResize") {
+        imagePos = $pos.pos - $pos.nodeBefore.nodeSize;
+      }
+
+      if (imagePos != null) {
+        const tr = view.state.tr.setSelection(
+          NodeSelection.create(view.state.doc, imagePos)
+        );
+        view.dispatch(tr);
+        return true;
+      }
+
+      return false;
+    },
+    []
+  );
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -107,6 +194,7 @@ export default function MediumTiptapEditor({
           ) {
             return "Title";
           }
+
           if (
             node.type.name === "paragraph" &&
             node.textContent.length === 0
@@ -122,9 +210,88 @@ export default function MediumTiptapEditor({
       attributes: {
         class: "prose prose-lg max-w-none focus:outline-none",
       },
+      handleClick: (view, _pos, event) => {
+        // Try selecting an image. Some resize-image UI elements stop bubbling
+        // events, so we also install a capture listener (see useEffect below).
+        return trySelectImageFromEvent(view, event as MouseEvent);
+      },
     },
     onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
   });
+
+  useEffect(() => {
+    if (!editor || !editor.view) return;
+
+    // Capture-phase listener to catch clicks on resize handles / overlay toolbar
+    // that may stop bubbling before ProseMirror's handlers see them.
+    const onCaptureMouseDown = (event: MouseEvent) => {
+      trySelectImageFromEvent(editor.view, event);
+    };
+
+    editor.view.dom.addEventListener("mousedown", onCaptureMouseDown, true);
+    return () => {
+      editor.view.dom.removeEventListener(
+        "mousedown",
+        onCaptureMouseDown,
+        true
+      );
+    };
+  }, [editor, trySelectImageFromEvent]);
+
+  const updateSelectedImageUi = useCallback(() => {
+    if (!editor || !editor.view) return;
+
+    // Determine active image + attrs via Tiptap API (works even if selection
+    // isn't a NodeSelection instance from the same module).
+    if (!editor.isActive("imageResize")) {
+      setSelectedImageSrc(null);
+      setSelectedImageCaption("");
+      setCaptionUi(null);
+      return;
+    }
+
+    const attrs = editor.getAttributes("imageResize") as {
+      src?: string;
+      caption?: string;
+      alt?: string;
+    };
+
+    const src = attrs?.src || null;
+    const caption = attrs?.caption || attrs?.alt || "";
+
+    // Find the selected node's DOM. ProseMirror adds `.ProseMirror-selectednode`
+    // to the node's element when it's selected (including nodeviews).
+    const selectedDom = editor.view.dom.querySelector(
+      ".ProseMirror-selectednode"
+    ) as HTMLElement | null;
+
+    if (!selectedDom) {
+      // Still keep attrs up to date, but don't render the floating UI until we
+      // can position it reliably.
+      setSelectedImageSrc(src);
+      setSelectedImageCaption(caption);
+      setCaptionUi(null);
+      return;
+    }
+
+    const rectEl = (selectedDom.querySelector("img") as HTMLElement | null) || selectedDom;
+    const imgRect = rectEl.getBoundingClientRect();
+
+    // Clamp into viewport so it can't end up "invisible" due to weird rects.
+    const desiredTop = imgRect.bottom + 10;
+    const clampedTop = Math.max(
+      8,
+      Math.min(desiredTop, window.innerHeight - 48)
+    );
+
+    setSelectedImageSrc(src);
+    setSelectedImageCaption(caption);
+    setCaptionUi({
+      top: clampedTop,
+      left: imgRect.left,
+      width: Math.max(imgRect.width, 120),
+    });
+  }, [editor]);
 
   const handleImagePick = useCallback(
     async (file?: File) => {
@@ -281,18 +448,40 @@ export default function MediumTiptapEditor({
 
     updatePlus();
 
+    updateSelectedImageUi();
+
     editor.on("selectionUpdate", updatePlus);
     editor.on("transaction", updatePlus);
     editor.on("focus", updatePlus);
+
+    editor.on("selectionUpdate", updateSelectedImageUi);
+    editor.on("transaction", updateSelectedImageUi);
+
     editor.on("blur", () => setShowPlusBtn(false));
 
     return () => {
       editor.off("selectionUpdate", updatePlus);
       editor.off("transaction", updatePlus);
       editor.off("focus", updatePlus);
+
+      editor.off("selectionUpdate", updateSelectedImageUi);
+      editor.off("transaction", updateSelectedImageUi);
+
       editor.off("blur", () => setShowPlusBtn(false));
     };
-  }, [editor, updatePlus]);
+  }, [editor, updatePlus, updateSelectedImageUi]);
+
+  useEffect(() => {
+    if (!captionUi) return;
+
+    const onWindowMove = () => updateSelectedImageUi();
+    window.addEventListener("scroll", onWindowMove, true);
+    window.addEventListener("resize", onWindowMove);
+    return () => {
+      window.removeEventListener("scroll", onWindowMove, true);
+      window.removeEventListener("resize", onWindowMove);
+    };
+  }, [captionUi, updateSelectedImageUi]);
 
   const toggleBold = useCallback(
     () => editor?.chain().focus().toggleBold().run(),
@@ -361,7 +550,7 @@ export default function MediumTiptapEditor({
           // Does the selection contain an image?
           let hasImage = false;
           state.doc.nodesBetween(from, to, (node) => {
-            if (node.type.name === "image") {
+            if (node.type.name === "imageResize") {
               hasImage = true;
             }
           });
@@ -466,7 +655,7 @@ export default function MediumTiptapEditor({
           // Show only when the selection covers a single image node
           let imageCount = 0;
           state.doc.nodesBetween(from, to, (node) => {
-            if (node.type.name === "image") {
+            if (node.type.name === "imageResize") {
               imageCount += 1;
             }
           });
@@ -478,15 +667,29 @@ export default function MediumTiptapEditor({
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
+            const attrs = editor.getAttributes("imageResize") as { src?: string };
+            if (attrs?.src) setZoomSrc(attrs.src);
+          }}
+          className="px-3 py-1 rounded text-sm hover:bg-gray-700"
+          title="Zoom"
+        >
+          Zoom
+        </button>
+
+        <div className="w-px h-6 bg-gray-600 mx-1" />
+
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
             editor
               .chain()
               .focus()
-              .updateAttributes("image", { layout: "inline" })
+              .updateAttributes("imageResize", { layout: "inline" })
               .run();
           }}
           className={`
             px-3 py-1 rounded text-sm
-            ${editor.isActive("image", { layout: "inline" })
+            ${editor.isActive("imageResize", { layout: "inline" })
               ? "bg-gray-700"
               : "hover:bg-gray-700"}
           `}
@@ -500,12 +703,12 @@ export default function MediumTiptapEditor({
             editor
               .chain()
               .focus()
-              .updateAttributes("image", { layout: "wide" })
+              .updateAttributes("imageResize", { layout: "wide" })
               .run();
           }}
           className={`
             px-3 py-1 rounded text-sm
-            ${editor.isActive("image", { layout: "wide" })
+            ${editor.isActive("imageResize", { layout: "wide" })
               ? "bg-gray-700"
               : "hover:bg-gray-700"}
           `}
@@ -519,12 +722,12 @@ export default function MediumTiptapEditor({
             editor
               .chain()
               .focus()
-              .updateAttributes("image", { layout: "full" })
+              .updateAttributes("imageResize", { layout: "full" })
               .run();
           }}
           className={`
             px-3 py-1 rounded text-sm
-            ${editor.isActive("image", { layout: "full" })
+            ${editor.isActive("imageResize", { layout: "full" })
               ? "bg-gray-700"
               : "hover:bg-gray-700"}
           `}
@@ -616,7 +819,7 @@ export default function MediumTiptapEditor({
         flex items-center justify-center shadow
       hover:bg-gray-50 dark:hover:bg-neutral-800
         active:scale-95
-        transition-transform transition-colors duration-150
+        transition duration-150
     "
     title="Add image or code block"
   >
@@ -652,12 +855,43 @@ export default function MediumTiptapEditor({
   </button>
 )}
 
+        {captionUi && selectedImageSrc && (
+          <div
+            style={{
+              position: "fixed",
+              top: captionUi.top,
+              left: captionUi.left + (captionUi.width - Math.min(captionUi.width, 520)) / 2,
+              width: Math.min(captionUi.width, 520),
+              zIndex: 999,
+            }}
+            className="px-2"
+          >
+            <input
+              value={selectedImageCaption}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedImageCaption(val);
+                editor.commands.updateAttributes("imageResize", { caption: val });
+              }}
+              placeholder="Açıklama ekleyiniz"
+              className="w-full text-center text-[15px] text-foreground/80 bg-background/75 border-b border-border/80 focus:outline-none focus:border-border"
+              onMouseDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+            />
+          </div>
+        )}
+
         <EditorContent editor={editor} className="medium-editor" />
       </div>
 
       {/* Unsplash modal */}
       {showUnsplashModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/40">
           <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="text-sm font-semibold">Add an image from Unsplash</h2>
@@ -758,6 +992,20 @@ export default function MediumTiptapEditor({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {zoomSrc && (
+        <div
+          className="fixed inset-0 z-80 flex items-center justify-center bg-black/70 p-6"
+          onClick={() => setZoomSrc(null)}
+        >
+          <img
+            src={zoomSrc}
+            alt=""
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

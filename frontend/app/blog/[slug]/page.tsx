@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { blogAPI, BlogComment, BlogCommentCreate } from '@/lib/api';
@@ -44,6 +44,65 @@ export default function BlogDetailPage() {
   const [comments, setComments] = useState<BlogComment[]>([]);
   const [newComment, setNewComment] = useState<BlogCommentCreate>({ content: '' });
 
+  const contentHtml = useMemo(() => {
+    if (!post?.content) return '';
+
+    try {
+      const doc = new DOMParser().parseFromString(post.content, 'text/html');
+      const images = Array.from(doc.querySelectorAll('img'));
+
+      images.forEach((img) => {
+        const caption =
+          img.getAttribute('caption') ||
+          img.getAttribute('data-caption') ||
+          img.getAttribute('alt') ||
+          img.getAttribute('title') ||
+          '';
+
+        if (!caption.trim()) return;
+
+        const existingFigure = img.closest('figure');
+        if (existingFigure) {
+          if (!existingFigure.querySelector('figcaption')) {
+            const figcaption = doc.createElement('figcaption');
+            figcaption.textContent = caption;
+            existingFigure.appendChild(figcaption);
+          }
+          return;
+        }
+
+        const wrapper = img.parentElement;
+        const isWrapperParagraph =
+          wrapper?.tagName === 'P' &&
+          Array.from(wrapper.childNodes).every((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              return (node.textContent || '').trim() === '';
+            }
+            return (node as Element).tagName === 'IMG';
+          });
+
+        const figure = doc.createElement('figure');
+        const figcaption = doc.createElement('figcaption');
+        figcaption.textContent = caption;
+
+        if (wrapper && isWrapperParagraph && wrapper.parentElement) {
+          wrapper.parentElement.insertBefore(figure, wrapper);
+          figure.appendChild(img);
+          figure.appendChild(figcaption);
+          wrapper.remove();
+        } else if (img.parentElement) {
+          img.parentElement.insertBefore(figure, img);
+          figure.appendChild(img);
+          figure.appendChild(figcaption);
+        }
+      });
+
+      return doc.body.innerHTML;
+    } catch {
+      return post.content;
+    }
+  }, [post?.content]);
+
   useEffect(() => {
     // If the user is an admin, fetch with a token so drafts are visible
     const fetchPost = async () => {
@@ -66,11 +125,12 @@ export default function BlogDetailPage() {
   }, [slug, user, token]);
 
   useEffect(() => {
-    if (!post || !contentRef.current) return;
+    if (!contentRef.current) return;
+
     contentRef.current
       .querySelectorAll('pre code')
       .forEach((block) => hljs.highlightElement(block as HTMLElement));
-  }, [post]);
+  }, [contentHtml]);
 
   useEffect(() => {
     if (!post) return;
@@ -201,7 +261,7 @@ export default function BlogDetailPage() {
               <div
                 className="ProseMirror"
                 ref={contentRef}
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: contentHtml }}
               />
             </div>
 
@@ -287,7 +347,7 @@ export default function BlogDetailPage() {
                         </button>
                       )}
                     </div>
-                    <p className="text-foreground/90 leading-relaxed pl-10 break-words">{comment.content}</p>
+                    <p className="text-foreground/90 leading-relaxed pl-10 wrap-break-word">{comment.content}</p>
                   </div>
                 ))}
                 {comments.length === 0 && (
