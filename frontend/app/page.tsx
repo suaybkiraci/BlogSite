@@ -13,6 +13,7 @@ import {
   Briefcase,
   BookOpen,
   PenSquare,
+  TrendingUp,
 } from "lucide-react";
 
 const KaggleIcon = () => (
@@ -58,6 +59,13 @@ export default function Home() {
         description: "Read all blog posts",
         icon: BookOpen,
         accent: "from-indigo-400/40 via-indigo-200/10 to-transparent",
+      },
+      {
+        href: "/predict",
+        label: "AI Stock Predict",
+        description: "LSTM model ile hisse tahmin",
+        icon: TrendingUp,
+        accent: "from-amber-400/40 via-amber-200/10 to-transparent",
       },
     ];
 

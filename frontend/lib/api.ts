@@ -385,3 +385,96 @@ export const adminAPI = {
   unbanUser: (userId: number) => api.post(`/admin/users/${userId}/unban`),
   getUserBlogs: (userId: number) => api.get<BlogPost[]>(`/admin/users/${userId}/blogs`),
 };
+
+// ── Stock Prediction API ──
+
+export interface Prediction {
+  id: number;
+  prediction_date: string;
+  target_date: string;
+  ticker: string;
+  predicted_log_return: number;
+  predicted_close: number;
+  last_close: number;
+  actual_close: number | null;
+  error_pct: number | null;
+  is_direction_correct: boolean | null;
+}
+
+export interface ComparisonItem {
+  id: number;
+  target_date: string;
+  predicted_close: number;
+  actual_close: number;
+  last_close: number;
+  error_pct: number;
+  is_direction_correct: boolean;
+  direction_predicted: string;
+  direction_actual: string;
+}
+
+export interface PredictionStats {
+  total_predictions: number;
+  predictions_with_actual: number;
+  avg_error_pct: number | null;
+  direction_accuracy_pct: number | null;
+  latest_prediction: {
+    target_date: string | null;
+    predicted_close: number | null;
+    actual_close: number | null;
+  } | null;
+}
+
+export interface ModelInfo {
+  ticker: string;
+  backcandles: number;
+  n_features: number;
+  n_stock_features: number;
+  n_macro_features: number;
+  scaler_columns: string[] | null;
+  configured_macro_cols: string[];
+  stock_features: string[];
+  tr_interest_rate: number;
+  tr_inflation: number;
+}
+
+export const predictAPI = {
+  async run(): Promise<Prediction> {
+    const res = await fetch(`${API_URL}/predict/run`, { method: 'POST' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || 'Tahmin çalıştırılamadı');
+    }
+    return res.json();
+  },
+
+  async updateActuals(): Promise<{ updated: number; message: string }> {
+    const res = await fetch(`${API_URL}/predict/update-actuals`, { method: 'POST' });
+    if (!res.ok) throw new Error('Gerçek veriler güncellenemedi');
+    return res.json();
+  },
+
+  async history(limit = 30): Promise<Prediction[]> {
+    const res = await fetch(`${API_URL}/predict/history?limit=${limit}`);
+    if (!res.ok) throw new Error('Tahmin geçmişi alınamadı');
+    return res.json();
+  },
+
+  async compare(limit = 30): Promise<ComparisonItem[]> {
+    const res = await fetch(`${API_URL}/predict/compare?limit=${limit}`);
+    if (!res.ok) throw new Error('Karşılaştırma verisi alınamadı');
+    return res.json();
+  },
+
+  async stats(): Promise<PredictionStats> {
+    const res = await fetch(`${API_URL}/predict/stats`);
+    if (!res.ok) throw new Error('İstatistikler alınamadı');
+    return res.json();
+  },
+
+  async info(): Promise<ModelInfo> {
+    const res = await fetch(`${API_URL}/predict/info`);
+    if (!res.ok) throw new Error('Model bilgileri alınamadı');
+    return res.json();
+  },
+};

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useMemo, useState } from "react";
-import { Menu, LogOut, UserCircle, MessageCircle, Shield } from "lucide-react";
+import { Menu, LogOut, UserCircle, MessageCircle, Shield, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
@@ -32,6 +32,7 @@ export default function Navbar() {
 
     const navLinks: { href: string; label: string; authOnly?: boolean }[] = [
       { href: "/blog", label: "Blog" },
+      { href: "/predict", label: "AI Tahmin" },
       { href: "/chat", label: "Chat", authOnly: true },
     ];
 
