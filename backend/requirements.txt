@@ -21,3 +21,4 @@ pandas
 numpy
 joblib
 pytz
+fredapi
