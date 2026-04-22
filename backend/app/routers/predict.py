@@ -53,31 +53,37 @@ def _cache_is_fresh(path: str) -> bool:
 
 
 def _yf_download(ticker: str, **kwargs):
-    """yfinance ile indirme — 3 deneme, artan bekleme."""
+    """yfinance ile indirme — 5 deneme, exponential backoff (rate limit'e dayanıklı)."""
     import yfinance as yf
 
-    for attempt in range(3):
+    delays = [10, 20, 40, 60, 90]
+    for attempt, delay in enumerate(delays):
         try:
             data = yf.download(ticker, progress=False, **kwargs)
             if data is not None and not data.empty:
                 return data
+            logger.warning("yfinance %s deneme %d/%d: boş veri, %ds bekleniyor",
+                           ticker, attempt + 1, len(delays), delay)
         except Exception as e:
-            logger.warning("yfinance %s deneme %d/3 hata: %s", ticker, attempt + 1, e)
-        time.sleep(2 * (attempt + 1))
+            logger.warning("yfinance %s deneme %d/%d hata: %s — %ds bekleniyor",
+                           ticker, attempt + 1, len(delays), e, delay)
+        time.sleep(delay)
 
-    raise ValueError(f"{ticker} verisi 3 denemede de çekilemedi")
+    raise ValueError(f"{ticker} verisi {len(delays)} denemede de çekilemedi")
 
 
 def _fred_get_series(fred, series_id: str, start: str, end: str):
-    """FRED API çağrısı — 3 deneme, artan bekleme."""
-    for attempt in range(3):
+    """FRED API çağrısı — 4 deneme, artan bekleme."""
+    delays = [5, 15, 30, 60]
+    for attempt, delay in enumerate(delays):
         try:
             return fred.get_series(series_id, start, end)
         except Exception as e:
-            logger.warning("FRED %s deneme %d/3 hata: %s", series_id, attempt + 1, e)
-            time.sleep(3 * (attempt + 1))
+            logger.warning("FRED %s deneme %d/%d hata: %s — %ds bekleniyor",
+                           series_id, attempt + 1, len(delays), e, delay)
+            time.sleep(delay)
 
-    raise ValueError(f"FRED {series_id} verisi 3 denemede de çekilemedi")
+    raise ValueError(f"FRED {series_id} verisi {len(delays)} denemede de çekilemedi")
 
 
 # ── Artifact yükleme ─────────────────────────────────────────
@@ -158,6 +164,9 @@ def _fetch_garanti_df():
     if "Volume" in data.columns:
         data.drop(columns=["Volume"], inplace=True)
     data["Date"] = pd.to_datetime(data["Date"]).dt.normalize()
+
+    if len(data) < BACKCANDLES + 1:
+        raise ValueError(f"GARAN.IS verisi çok kısa ({len(data)} satır), cache'lenmedi")
 
     data.to_pickle(cp)
     logger.info("GARAN.IS indirildi: %d satır, cache kaydedildi", len(data))
@@ -262,6 +271,7 @@ def _build_prediction_frame():
     end_macro = (datetime.now().date() + timedelta(days=1)).strftime("%Y-%m-%d")
     logger.info("GARAN.IS güncelleniyor...")
     df_garanti = _fetch_garanti_df()
+    time.sleep(5)
     logger.info("Makro panel (FRED + altın) çekiliyor...")
     df_turkiye = _fetch_turkiye_df(end_macro)
 
