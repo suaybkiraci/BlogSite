@@ -14,6 +14,7 @@ from app.schemas.prediction import PredictionOut, ComparisonItem, StatsOut
 import numpy as np
 import os
 import logging
+import time
 from datetime import datetime, timedelta
 from typing import List
 
@@ -23,16 +24,63 @@ router = APIRouter(prefix="/predict", tags=["predict"])
 
 TICKER = "GARAN.IS"
 BACKCANDLES = 10
-START_MACRO = "2000-01-01"
 _artifacts_dir = os.path.join(os.path.dirname(__file__), "..")
 
 FRED_API_KEY = os.getenv("FRED_API_KEY", "be1b307d1c5e2cdf3cf263dc2935ee50")
+
+_STOCK_LOOKBACK_DAYS = 800
+_MACRO_LOOKBACK_DAYS = 1200
+_CACHE_DIR = os.path.join(_artifacts_dir, "_cache")
 
 _model = None
 _scaler = None
 _n_features = None
 _feature_names = None
 
+
+# ── Yardımcılar: cache + retry ───────────────────────────────
+
+def _cache_path(name: str) -> str:
+    os.makedirs(_CACHE_DIR, exist_ok=True)
+    return os.path.join(_CACHE_DIR, f"{name}.pkl")
+
+
+def _cache_is_fresh(path: str) -> bool:
+    if not os.path.exists(path):
+        return False
+    mtime = datetime.fromtimestamp(os.path.getmtime(path))
+    return mtime.date() == datetime.now().date()
+
+
+def _yf_download(ticker: str, **kwargs):
+    """yfinance ile indirme — 3 deneme, artan bekleme."""
+    import yfinance as yf
+
+    for attempt in range(3):
+        try:
+            data = yf.download(ticker, progress=False, **kwargs)
+            if data is not None and not data.empty:
+                return data
+        except Exception as e:
+            logger.warning("yfinance %s deneme %d/3 hata: %s", ticker, attempt + 1, e)
+        time.sleep(2 * (attempt + 1))
+
+    raise ValueError(f"{ticker} verisi 3 denemede de çekilemedi")
+
+
+def _fred_get_series(fred, series_id: str, start: str, end: str):
+    """FRED API çağrısı — 3 deneme, artan bekleme."""
+    for attempt in range(3):
+        try:
+            return fred.get_series(series_id, start, end)
+        except Exception as e:
+            logger.warning("FRED %s deneme %d/3 hata: %s", series_id, attempt + 1, e)
+            time.sleep(3 * (attempt + 1))
+
+    raise ValueError(f"FRED {series_id} verisi 3 denemede de çekilemedi")
+
+
+# ── Artifact yükleme ─────────────────────────────────────────
 
 def _load_artifacts():
     global _model, _scaler, _n_features, _feature_names
@@ -55,17 +103,17 @@ def _load_artifacts():
     else:
         _feature_names = None
 
-    logger.info(f"Model yüklendi — feature sayısı: {_n_features}")
+    logger.info("Model yüklendi — feature sayısı: %d", _n_features)
     return _model, _scaler, _n_features, _feature_names
 
 
+# ── Teknik gösterge hesaplama ─────────────────────────────────
+
 def _ema(series, length: int):
-    """pandas_ta.ema(span=L, adjust=False) ile aynı."""
     return series.ewm(span=length, adjust=False).mean()
 
 
 def _rsi_wilder(close, length: int = 15):
-    """Wilder RSI (pandas_ta.rsi length=L ile aynı mantık)."""
     delta = close.diff()
     gain = delta.clip(lower=0.0)
     loss = (-delta).clip(lower=0.0)
@@ -76,16 +124,20 @@ def _rsi_wilder(close, length: int = 15):
     return 100.0 - (100.0 / (1.0 + rs))
 
 
-# ── Garanti hisse verisi (data.py / predict_next ile aynı parametreler) ──
+# ── Garanti hisse verisi (son ~500 işlem günü + cache) ────────
 
 def _fetch_garanti_df():
-    import yfinance as yf
     import pandas as pd
 
+    cp = _cache_path("garanti")
+    if _cache_is_fresh(cp):
+        logger.info("GARAN.IS cache'den yükleniyor")
+        return pd.read_pickle(cp)
+
+    start = (datetime.now().date() - timedelta(days=_STOCK_LOOKBACK_DAYS)).strftime("%Y-%m-%d")
     end = (datetime.now().date() + timedelta(days=1)).strftime("%Y-%m-%d")
-    data = yf.download(TICKER, start="1987-01-01", end=end, progress=False)
-    if data.empty:
-        raise ValueError(f"{TICKER} verisi çekilemedi")
+
+    data = _yf_download(TICKER, start=start, end=end)
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
 
@@ -106,28 +158,35 @@ def _fetch_garanti_df():
     if "Volume" in data.columns:
         data.drop(columns=["Volume"], inplace=True)
     data["Date"] = pd.to_datetime(data["Date"]).dt.normalize()
+
+    data.to_pickle(cp)
+    logger.info("GARAN.IS indirildi: %d satır, cache kaydedildi", len(data))
     return data
 
 
-# ── Türkiye makro panel (main2.py ile aynı — FRED) ─────────
+# ── Türkiye makro panel (son ~1200 gün + cache) ──────────────
 
 def _fetch_turkiye_df(end_date: str):
     import pandas as pd
-    import yfinance as yf
-    from fredapi import Fred
 
+    cp = _cache_path("turkiye_macro")
+    if _cache_is_fresh(cp):
+        logger.info("Makro panel cache'den yükleniyor")
+        return pd.read_pickle(cp)
+
+    start_macro = (datetime.now().date() - timedelta(days=_MACRO_LOOKBACK_DAYS)).strftime("%Y-%m-%d")
+
+    from fredapi import Fred
     fred = Fred(api_key=FRED_API_KEY)
 
-    turkiye_enflasyon = fred.get_series("FPCPITOTLZGTUR", START_MACRO, end_date)
-    exchange_rate = fred.get_series("CCUSMA02TRM618N", START_MACRO, end_date)
-    interest_rate = fred.get_series("INTDSRTRM193N", START_MACRO, end_date)
-    m2_money_supply = fred.get_series("MYAGM2TRM189N", START_MACRO, end_date)
-    vix_index = fred.get_series("VIXCLS", START_MACRO, end_date)
-    ten_year_treasury_yield = fred.get_series("DGS10", START_MACRO, end_date)
+    turkiye_enflasyon = _fred_get_series(fred, "FPCPITOTLZGTUR", start_macro, end_date)
+    exchange_rate = _fred_get_series(fred, "CCUSMA02TRM618N", start_macro, end_date)
+    interest_rate = _fred_get_series(fred, "INTDSRTRM193N", start_macro, end_date)
+    m2_money_supply = _fred_get_series(fred, "MYAGM2TRM189N", start_macro, end_date)
+    vix_index = _fred_get_series(fred, "VIXCLS", start_macro, end_date)
+    ten_year_treasury_yield = _fred_get_series(fred, "DGS10", start_macro, end_date)
 
-    gold_data = yf.download("GC=F", start=START_MACRO, end=end_date, progress=False)
-    if gold_data.empty:
-        raise ValueError("Altın (GC=F) verisi alınamadı.")
+    gold_data = _yf_download("GC=F", start=start_macro, end=end_date)
     gold_data.columns = gold_data.columns.get_level_values(0)
     gold_price = gold_data["Close"]
 
@@ -189,6 +248,9 @@ def _fetch_turkiye_df(end_date: str):
     if "Date" not in df.columns:
         df = df.rename(columns={df.columns[0]: "Date"})
     df["Date"] = pd.to_datetime(df["Date"]).dt.normalize()
+
+    df.to_pickle(cp)
+    logger.info("Makro panel indirildi: %d satır, cache kaydedildi", len(df))
     return df
 
 
@@ -229,7 +291,6 @@ def _build_prediction_frame():
 # ── Tahmin motoru ───────────────────────────────────────────
 
 def run_prediction(db: Session):
-    """predict_next.py ile birebir aynı tahmin akışı."""
     model, scaler, n_features, _ = _load_artifacts()
 
     df, feature_cols, target_col = _build_prediction_frame()
@@ -277,15 +338,13 @@ def run_prediction(db: Session):
     db.refresh(prediction)
 
     logger.info(
-        f"Tahmin → hedef: {target_date.date()}, "
-        f"tahmini: {predicted_close:.2f} TL, son kapanış: {last_close:.2f} TL"
+        "Tahmin → hedef: %s, tahmini: %.2f TL, son kapanış: %.2f TL",
+        target_date.date(), predicted_close, last_close,
     )
     return prediction
 
 
 def update_actuals(db: Session) -> int:
-    """Gerçek kapanış fiyatlarını çekip bekleyen tahminleri güncelle."""
-    import yfinance as yf
     import pandas as pd
 
     pending = (
@@ -299,8 +358,9 @@ def update_actuals(db: Session) -> int:
     if not pending:
         return 0
 
-    stock = yf.download(TICKER, period="60d", auto_adjust=True, progress=False)
-    if stock.empty:
+    try:
+        stock = _yf_download(TICKER, period="60d", auto_adjust=True)
+    except ValueError:
         return 0
     if isinstance(stock.columns, pd.MultiIndex):
         stock.columns = stock.columns.get_level_values(0)
@@ -318,7 +378,7 @@ def update_actuals(db: Session) -> int:
             updated += 1
 
     db.commit()
-    logger.info(f"{updated} tahmin gerçek verilerle güncellendi")
+    logger.info("%d tahmin gerçek verilerle güncellendi", updated)
     return updated
 
 
@@ -329,7 +389,7 @@ def trigger_prediction(db: Session = Depends(get_db)):
     try:
         return run_prediction(db)
     except Exception as e:
-        logger.error(f"Tahmin hatası: {e}", exc_info=True)
+        logger.error("Tahmin hatası: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
