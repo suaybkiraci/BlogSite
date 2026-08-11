@@ -227,7 +227,7 @@ export default function EditBlogPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="glass-chip rounded-full p-2 text-muted-foreground transition hover:-translate-y-0.5 hover:border-primary hover:text-primary"
+                className="rounded-full border border-border/50 bg-background/50 p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 title="Ayarlar"
               >
                 <Settings size={20} />
@@ -235,7 +235,7 @@ export default function EditBlogPage() {
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={saving}
-                className="glass-chip rounded-full px-4 py-2 text-sm font-medium text-foreground transition hover:-translate-y-0.5 hover:border-primary hover:text-primary disabled:opacity-60"
+                className="rounded-full border border-border/50 bg-background/50 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-60"
               >
                 Save draft
               </button>

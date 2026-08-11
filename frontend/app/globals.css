@@ -160,22 +160,11 @@ input.text-field,
 }
 
 .app-backdrop {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(145deg,
-      hsl(var(--background)) 0%,
-      hsl(var(--muted)) 35%,
-      hsl(var(--background)) 70%,
-      hsl(var(--muted)) 100%);
-  z-index: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .dark .app-backdrop {
-  background:
-    radial-gradient(circle at 18% 22%, rgba(53, 94, 175, 0.55), transparent 55%),
-    radial-gradient(circle at 82% 8%, rgba(28, 67, 149, 0.45), transparent 60%),
-    linear-gradient(145deg, rgba(6, 13, 28, 0.97) 0%, rgba(10, 20, 44, 0.96) 50%, rgba(9, 21, 45, 0.98) 100%);
+  display: none;
 }
 
 .app-grid {
@@ -199,52 +188,20 @@ input.text-field,
 }
 
 .page-mesh {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background:
-    radial-gradient(circle at 15% 25%, hsl(var(--primary)/0.25), transparent 45%),
-    radial-gradient(circle at 85% 10%, hsl(var(--accent)/0.2), transparent 45%),
-    radial-gradient(circle at 45% 80%, hsl(var(--secondary)/0.2), transparent 50%);
-  opacity: 0.85;
+  display: none;
 }
 
 .dark .page-mesh {
-  background:
-    radial-gradient(circle at 18% 25%, rgba(78, 128, 230, 0.18), transparent 45%),
-    radial-gradient(circle at 82% 12%, rgba(60, 158, 255, 0.16), transparent 48%),
-    radial-gradient(circle at 46% 80%, rgba(126, 111, 255, 0.18), transparent 52%);
-  opacity: 0.62;
-  filter: saturate(0.9);
+  display: none;
 }
 
 .blob {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  filter: blur(60px);
-  background: conic-gradient(from 180deg at 50% 50%,
-      hsl(var(--primary)/.18),
-      hsl(var(--secondary)/.18),
-      hsl(var(--accent)/.18),
-      hsl(var(--primary)/.18));
-  border-radius: 50%;
-  opacity: .8;
-  animation: blobMove 14s ease-in-out infinite alternate;
+  display: none;
 }
 
 @keyframes blobMove {
-  0% {
-    transform: translate(-2%, -2%) scale(1.02) rotate(0deg);
-  }
-
-  100% {
-    transform: translate(2%, 2%) scale(1.04) rotate(4deg);
-  }
+  0% { transform: translate(-2%, -2%) scale(1.02) rotate(0deg); }
+  100% { transform: translate(2%, 2%) scale(1.04) rotate(4deg); }
 }
 
 @keyframes gradientShift {

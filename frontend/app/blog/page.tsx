@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { blogAPI } from '@/lib/api';
-import { Tag, Plus, Edit, Trash2 } from 'lucide-react';
+import { Tag, Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { User } from 'lucide-react';
@@ -65,19 +65,23 @@ export default function BlogListPage() {
   );
 
   return (
-    <div className="fixed inset-0 z-20 bg-background transition-colors overflow-y-auto py-10 pt-24">
+    <div className="bg-background transition-colors py-10 pt-24 min-h-screen">
       <main className="relative mx-auto flex max-w-4xl flex-col gap-12 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-[40px] p-8 text-center shadow-[0_40px_140px_rgba(15,23,42,0.25)] transition-colors md:p-12"
+          className="flex flex-col items-center text-center py-12"
         >
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">Blogs</h1>
+          <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full border border-border bg-card text-sm font-medium text-muted-foreground shadow-sm">
+            <BookOpen size={16} />
+            <span>Articles & Updates</span>
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl">Blogs</h1>
           {user && (
-            <div className="mt-6">
+            <div className="mt-8">
               <Link
                 href="/blog/new"
-                className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background shadow-lg transition hover:-translate-y-0.5 dark:bg-primary dark:text-primary-foreground"
+                className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition hover:bg-foreground/90"
               >
                 <Plus size={18} />
                 Write a blog

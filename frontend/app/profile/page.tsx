@@ -54,7 +54,7 @@ export default function ProfilePage() {
       <div className="py-10">
         <main className="mx-auto max-w-4xl space-y-10 px-4 sm:px-6 lg:px-8">
           <motion.div
-            className="glass-card rounded-[40px] p-8 shadow-[0_40px_120px_rgba(15,23,42,0.2)] transition-colors dark:shadow-[0_45px_130px_rgba(4,12,30,0.55)] md:p-12"
+            className="rounded-3xl border border-border bg-card p-8 shadow-sm transition-colors md:p-12"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -64,7 +64,7 @@ export default function ProfilePage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <div className="relative h-48 w-48 rounded-full border border-border/60 bg-gradient-to-br from-primary/30 via-primary/10 to-transparent p-1 shadow-[0_25px_70px_rgba(59,130,246,0.3)]">
+                <div className="relative h-48 w-48 rounded-full border border-border/50 bg-background/50 p-1 shadow-sm">
                   <div className="h-full w-full overflow-hidden rounded-full border border-border/60 bg-card/95 transition-colors">
                     {profileImageUrl ? (
                       <Image
@@ -115,19 +115,19 @@ export default function ProfilePage() {
                 animate={{ opacity: 1, x: 0 }}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="glass-surface rounded-2xl p-5 text-foreground shadow-sm transition-colors">
+                  <div className="rounded-2xl border border-border/50 bg-background/50 p-5 text-foreground shadow-sm transition-colors">
                     <span className="text-xs uppercase tracking-wide text-muted-foreground flex items-center gap-2">
                       <User size={14} /> Username
                     </span>
                     <span className="text-lg font-medium">{user?.username}</span>
                   </div>
-                  <div className="glass-surface rounded-2xl p-5 text-foreground shadow-sm transition-colors">
+                  <div className="rounded-2xl border border-border/50 bg-background/50 p-5 text-foreground shadow-sm transition-colors">
                     <span className="text-xs uppercase tracking-wide text-muted-foreground flex items-center gap-2">
                       <Mail size={14} /> Email
                     </span>
                     <span className="text-lg font-medium break-all">{user?.email}</span>
                   </div>
-                  <div className="glass-surface rounded-2xl p-5 text-foreground shadow-sm transition-colors sm:col-span-2">
+                  <div className="rounded-2xl border border-border/50 bg-background/50 p-5 text-foreground shadow-sm transition-colors sm:col-span-2">
                     <span className="text-xs uppercase tracking-wide text-muted-foreground flex items-center gap-2">
                       <Hash size={14} /> ID
                     </span>

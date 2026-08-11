@@ -57,9 +57,8 @@ export default function RootLayout({
 }>) {
   const themeInit = `(() => { try { const t = localStorage.getItem('theme'); if (t === 'dark') { document.documentElement.classList.add('dark'); } else if (t === 'light') { document.documentElement.classList.remove('dark'); } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.classList.add('dark'); } } catch (_) {} })();`;
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
         <AuthProvider>

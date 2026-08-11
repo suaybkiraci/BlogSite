@@ -22,7 +22,7 @@ const KaggleIcon = () => (
 
 const socialLinks = [
   { href: "https://github.com/suaybkiraci", label: "GitHub", icon: Github },
-  { href: "https://linkedin.com/in/muhammed-suayib-kiraci-428648274", label: "LinkedIn", icon: Linkedin },
+  { href: "https://linkedin.com/in/suayb", label: "LinkedIn", icon: Linkedin },
   { href: "mailto:msuaybkiraci@gmail.com", label: "Email", icon: Mail },
   { href: "https://instagram.com/suaybkiraci", label: "Instagram", icon: Instagram },
   { href: "https://kaggle.com/suayb1", label: "Kaggle", icon: KaggleIcon },
@@ -90,12 +90,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="rounded-[46px] border border-border/60 bg-card/90 p-8 md:p-12 shadow-[0_50px_120px_rgba(15,23,42,0.25)] backdrop-blur-3xl transition-colors dark:shadow-[0_55px_130px_rgba(4,12,30,0.55)]"
+            className="flex flex-col gap-6 py-12"
           >
-            <div className="space-y-6 text-foreground">
-              <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+            <div className="space-y-4 text-foreground">
+              <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
                 Welcome back, <span className="text-primary">{user?.username}</span>
               </h1>
+              <p className="text-lg text-muted-foreground">What would you like to work on today?</p>
             </div>
 
             <div className="mt-10 grid gap-4 md:grid-cols-2">
@@ -103,16 +104,16 @@ export default function Home() {
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="group relative overflow-hidden rounded-[30px] glass-card p-6 shadow-[0_25px_60px_rgba(15,23,42,0.15)] transition hover:-translate-y-1"
+                  className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 shadow-sm transition hover:border-border"
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${action.accent} opacity-0 transition group-hover:opacity-100`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${action.accent} opacity-0 transition group-hover:opacity-20`} />
                   <div className="relative z-10 flex items-start gap-4">
-                    <span className="glass-chip flex h-12 w-12 items-center justify-center rounded-2xl text-primary">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
                       <action.icon size={20} />
                     </span>
                     <div>
-                      <p className="text-lg font-semibold text-foreground">{action.label}</p>
-                      <p className="text-sm text-muted-foreground">{action.description}</p>
+                      <p className="text-base font-semibold text-foreground">{action.label}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{action.description}</p>
                     </div>
                   </div>
                 </Link>
@@ -139,40 +140,32 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="grid gap-10 rounded-[48px] glass-card p-8 shadow-[0_50px_140px_rgba(15,23,42,0.25)] transition-colors md:grid-cols-[1.05fr_0.95fr]"
+          className="flex flex-col items-center gap-8 py-16 sm:py-24"
         >
-          <div className="space-y-6 text-foreground">
-            <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
-              Personal Portfolio of <span className="text-primary">Şuayb Kiracı</span>
+          <div className="w-full max-w-3xl text-left flex flex-col gap-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
+              <span className="text-primary/80">Hello</span>
             </h1>
-            <p className="text-lg text-muted-foreground">
-              Hello, I am Şuayb. I’m a full-stack developer with a strong interest in Python-based web development. I enjoy designing efficient backend systems, building modern frontends, and experimenting with artificial intelligence..
+            
+            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+              I’m Şuayb, a full-stack developer with a strong focus on AI-powered software development. I enjoy building intelligent applications using Python, developing scalable backend systems, and integrating LLMs, RAG pipelines, and AI agents into real-world products.
             </p>
-            <div className="flex flex-wrap gap-3">
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-2">
               <Link
                 href="/CV2025.pdf"
                 download="CV2025.pdf"
-                className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background shadow-lg transition hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center rounded-full bg-foreground px-8 py-3.5 text-sm font-medium text-background transition hover:bg-foreground/90"
               >
                 Download CV
               </Link>
               <Link
                 href="/blog"
-                className="glass-chip inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-primary/60"
+                className="inline-flex items-center justify-center rounded-full border border-border/50 bg-card px-8 py-3.5 text-sm font-medium text-foreground shadow-sm transition hover:bg-accent hover:text-accent-foreground"
               >
                 Explore the blog
               </Link>
-            </div>
-          </div>
-
-          <div className="relative mx-auto flex h-72 w-72 items-center justify-center rounded-[40px] glass-card p-3 shadow-[0_40px_120px_rgba(15,23,42,0.25)]">
-            <div className="relative h-full w-full overflow-hidden rounded-[32px] glass-card">
-              <img
-                src="https://avatars.githubusercontent.com/suaybkiraci"
-                alt="Suayb Kiraci"
-                className="h-full w-full object-cover"
-              />
-            </div>
           </div>
         </motion.section>
 
@@ -189,7 +182,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ y: -4 }}
-              className="group inline-flex items-center gap-2 glass-chip rounded-full px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:border-primary/60"
+              className="group inline-flex items-center gap-2 rounded-full border border-border/50 bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted"
             >
               <item.icon size={18} className="text-muted-foreground group-hover:text-primary" />
               <span>{item.label}</span>
@@ -201,20 +194,18 @@ export default function Home() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="grid gap-6 md:grid-cols-2"
+          className="grid gap-6 md:grid-cols-2 mt-8"
         >
-          <motion.div whileHover={{ y: -6 }} className="group card relative overflow-hidden p-8 transition-colors">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition group-hover:opacity-100" />
+          <motion.div whileHover={{ y: -2 }} className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 shadow-sm transition-colors hover:border-border">
             <div className="relative z-10">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                <Code2 size={24} />
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <Code2 size={20} />
               </div>
-              <h3 className="text-xl font-semibold text-foreground">Tech Stack</h3>
+              <h3 className="text-lg font-semibold text-foreground">Tech Stack</h3>
               <div className="mt-4 flex flex-wrap gap-2">
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-green-500/20 bg-green-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="Django"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -224,8 +215,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-teal-500/20 bg-teal-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="FastAPI"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -235,8 +225,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-pink-500/20 bg-pink-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title=".NET"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -246,8 +235,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="React"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -257,8 +245,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-500/20 bg-slate-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="Next.js"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -268,8 +255,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-blue-500/20 bg-blue-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="PostgreSQL"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -279,8 +265,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-blue-600/20 bg-blue-600/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="TypeScript"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -290,8 +275,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-orange-500/20 bg-orange-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="TensorFlow/Keras"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -301,8 +285,7 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1.5"
+                  className="flex items-center gap-1.5 rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   title="PyTorch"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -314,23 +297,22 @@ export default function Home() {
             </div>
           </motion.div>
 
-          <motion.div whileHover={{ y: -6 }} className="group card relative overflow-hidden p-8 transition-colors">
-            <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 transition group-hover:opacity-100" />
+          <motion.div whileHover={{ y: -2 }} className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 shadow-sm transition-colors hover:border-border">
             <div className="relative z-10">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/15 text-secondary">
-                <Briefcase size={24} />
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <Briefcase size={20} />
               </div>
-              <h3 className="text-xl font-semibold text-foreground">Work Experience</h3>
+              <h3 className="text-lg font-semibold text-foreground">Work Experience</h3>
               <div className="mt-6 space-y-4 text-sm">
-                <div className="border-l-2 border-secondary/20 pl-4">
+                <div className="border-l-2 border-border/50 pl-4 transition-colors hover:border-foreground/50">
                   <div className="font-semibold text-foreground">Stoneity</div>
-                  <div className="text-xs text-muted-foreground">2024 • Internship</div>
-                  <p className="text-muted-foreground">.NET &amp; C# Web Backend Development</p>
+                  <div className="text-xs text-muted-foreground mb-1">2024 • Internship</div>
+                  <p className="text-muted-foreground text-xs">.NET &amp; C# Web Backend Development</p>
                 </div>
-                <div className="border-l-2 border-secondary/20 pl-4">
+                <div className="border-l-2 border-border/50 pl-4 transition-colors hover:border-foreground/50">
                   <div className="font-semibold text-foreground">Perapole</div>
-                  <div className="text-xs text-muted-foreground">2025 • Internship</div>
-                  <p className="text-muted-foreground">FastAPI and Next.js Full Stack Development</p>
+                  <div className="text-xs text-muted-foreground mb-1">2025 • Internship</div>
+                  <p className="text-muted-foreground text-xs">FastAPI and Next.js Full Stack Development</p>
                 </div>
               </div>
             </div>

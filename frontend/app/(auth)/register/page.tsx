@@ -41,7 +41,7 @@ export default function RegisterPage() {
     <div className="py-10">
       <div className="mx-auto max-w-md space-y-6 px-4">
         <motion.div
-          className="rounded-[32px] border border-border/60 bg-card/90 p-6 text-center shadow-[0_35px_100px_rgba(15,23,42,0.22)] backdrop-blur-2xl transition-colors dark:shadow-[0_40px_110px_rgba(4,12,30,0.55)]"
+          className="rounded-3xl border border-border bg-card p-6 text-center shadow-sm transition-colors"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -52,7 +52,7 @@ export default function RegisterPage() {
         </motion.div>
 
         <motion.div
-          className="card p-8"
+          className="rounded-2xl border border-border bg-card shadow-sm p-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
 import { useAuthStore } from "@/store/authStore";
 
 export default function Footer() {
@@ -40,12 +39,11 @@ export default function Footer() {
               )}
             </nav>
 
-            <div className="flex items-center justify-center gap-3">
-              {user?.role === 'admin' && (
+            {user?.role === 'admin' && (
+              <div className="flex items-center justify-center gap-3">
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Admin</span>
-              )}
-              <ThemeToggle />
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

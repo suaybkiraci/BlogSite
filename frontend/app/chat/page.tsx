@@ -63,10 +63,10 @@ export default function ChatPage() {
   return (
     <ProtectedRoute>
       <div className="py-10">
-        <div className="glass-card mx-auto flex min-h-[70vh] max-w-4xl flex-col rounded-[36px] p-4 shadow-[0_40px_120px_rgba(15,23,42,0.25)] sm:p-6">
+        <div className="mx-auto flex min-h-[70vh] max-w-4xl flex-col rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
         {/* Header */}
         <motion.div 
-          className="glass-surface mb-4 flex items-center justify-between rounded-2xl p-4 shadow-sm"
+          className="mb-4 flex items-center justify-between rounded-xl border border-border/50 bg-background/50 p-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -82,7 +82,7 @@ export default function ChatPage() {
           {messages.length > 0 && (
             <motion.button
               onClick={clearChat}
-              className="glass-chip flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground"
+              className="flex items-center gap-2 rounded-lg border border-border/50 bg-background/50 px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -175,7 +175,7 @@ export default function ChatPage() {
         {/* Input Form */}
         <motion.form 
           onSubmit={handleSubmit} 
-          className="glass-surface flex gap-2 rounded-2xl p-2 shadow-sm"
+          className="flex gap-2 rounded-xl border border-border/50 bg-background/50 p-2"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}

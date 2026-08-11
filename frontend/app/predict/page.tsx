@@ -64,7 +64,7 @@ function StatCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="glass-card group relative overflow-hidden rounded-[28px] p-6"
+      className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 shadow-sm transition hover:border-border"
     >
       <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-0 transition group-hover:opacity-100`} />
       <div className="relative z-10">
@@ -269,7 +269,7 @@ export default function PredictPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="glass-card relative overflow-hidden rounded-[36px] p-8 shadow-[0_40px_100px_rgba(15,23,42,0.2)]"
+            className="relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-sm"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-60" />
             <div className="relative z-10">
@@ -351,7 +351,7 @@ export default function PredictPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="glass-card rounded-[36px] p-6 shadow-[0_30px_80px_rgba(15,23,42,0.15)] sm:p-8"
+          className="rounded-3xl border border-border/50 bg-card p-6 shadow-sm sm:p-8"
         >
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-1 rounded-2xl bg-muted/60 p-1">
@@ -371,7 +371,7 @@ export default function PredictPage() {
             </div>
             <button
               onClick={handleLoadModelInfo}
-              className="glass-chip flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+              className="flex items-center gap-2 rounded-full border border-border/50 bg-background/50 px-4 py-2 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
             >
               <Info size={14} />
               Model Bilgisi

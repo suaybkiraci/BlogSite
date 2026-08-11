@@ -35,7 +35,7 @@ export default function ContactPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-[40px] border border-border/60 bg-card/90 p-10 text-center shadow-[0_40px_120px_rgba(15,23,42,0.22)] backdrop-blur-2xl dark:shadow-[0_50px_130px_rgba(4,12,30,0.55)]"
+          className="rounded-3xl border border-border bg-card p-10 text-center shadow-sm"
         >
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Mail size={28} />
@@ -47,7 +47,7 @@ export default function ContactPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.5 }}
-          className="card p-8"
+          className="rounded-2xl border border-border bg-card p-8 shadow-sm"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             <motion.div
