@@ -81,7 +81,6 @@ app.add_middleware(
         "https://www.demo.suayb.xyz",
         "http://demo.suayb.xyz",
         "https://suayb.xyz",
-
     ],
     allow_credentials=True,
     allow_methods=["*"],
