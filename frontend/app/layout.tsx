@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://your-domain.com",
+    url: "https://suayb.com",
     title: "Şuayb's Blog",
     description: "Personal blog and portfolio sharing insights on web development, technology, and more.",
     siteName: "Şuayb's Blog",

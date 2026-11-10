@@ -20,11 +20,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'demo.suayb.xyz',
+        hostname: 'suayb.com',
       },
       {
         protocol: 'https',
-        hostname: 'suayb.xyz',
+        hostname: 'api.suayb.com',
       },
     ],
   },
